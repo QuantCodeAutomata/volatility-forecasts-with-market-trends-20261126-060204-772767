@@ -76,7 +76,18 @@ adding trends (`exp1_long_horizon.csv`, `exp1_long_horizon_improvement.png`):
 10.7% (2d) → 12.7% (4d) → 11.9% (8d) → 6.4% (16d) → 2.4% (32d) → 0.8% (64d).
 The paper reports improvement *growing* with horizon up to +53% at 3 months;
 this run shows improvement *shrinking* beyond the 4-day horizon, and never
-exceeds ~13% → **not reproduced** (the qualitative growth pattern fails).
+exceeds ~13% → **not reproduced** (the qualitative growth pattern fails). A
+code-level check of the long-horizon construction (`src/panel.py`,
+`build_long_horizon_panel`; `src/config.ewma_alpha_for_horizon`;
+`src/regression_models.longer_horizon_target`) against methodology step 10
+confirms the EWMA decay schedule (alpha=0.94 for k≤3, else 1-2^-(k+1)), the
+restriction to trend horizons T_j≥T_k, and the cumulative-target formula all
+match the paper's specification, so the reversal is not attributable to a
+formula error in this construction; the baseline (no-trend) R²_adj itself
+peaks at the 16-day horizon and falls thereafter, suggesting the shrinking
+*relative* improvement reflects the proxy universe's cumulative-variance
+predictability at long horizons rather than a code defect, but the cause was
+not further isolated.
 
 ## Experiment 2 — GARCH(1,1) and GJR-GARCH Models with Trend Factors
 
