@@ -220,9 +220,15 @@ predictive power.
   as the estimates themselves. The paper's 9,216-day, 16-fold design has
   roughly 2.7x the trading days and 2.7x the cross-validation folds of the
   executed 6-fold run on the realized proxy sample; this run cannot establish
-  statistical significance for these coefficients at its reduced scale, and
-  the full-scale configuration (`--full`, see above) was not run to check
-  whether it narrows this gap.
+  statistical significance for these coefficients at its reduced scale. A
+  targeted check that re-ran the pooled GARCH out-of-sample R²_adj at the
+  paper's 16-fold cross-validation split (same fitted coefficients, same
+  proxy sample) found the sign of the trend effect unchanged: Δ R²_adj =
+  -0.00015 at 6 folds vs. -0.00036 at 16 folds, i.e. more negative, not less,
+  at the paper's own fold count. The GARCH sign flip is therefore not an
+  artifact of the reduced cross-validation scale; its cause was not further
+  identified. The full bootstrap-resample scale (`--full`, see above) was not
+  run.
 - **Rate-futures asset-class sign.** Experiment 1's rate-futures proxy class
   (US Treasury duration ETFs substituting for 6 foreign government-bond
   futures) shows a positive linear trend coefficient (+0.086) where the paper
