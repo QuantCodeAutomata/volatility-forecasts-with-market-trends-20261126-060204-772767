@@ -70,6 +70,36 @@ def build_panel(per_ticker: dict, universe: dict,
     return panel
 
 
+def build_long_horizon_panel(panel: pd.DataFrame, k: int) -> pd.DataFrame:
+    """Panel for the T=2^k-day prediction horizon (paper section 3.6,
+    methodology step 10): EWMA variance recomputed with
+    ``config.ewma_alpha_for_horizon(k)``, the aggregate trend restricted to
+    horizons T_j >= T (j >= k, paper: "only include trends with horizon
+    T >= 2^k"), and the target replaced by the cumulative T-day realized
+    variance (``regression_models.longer_horizon_target``). Returned columns
+    (sigma2, phi_agg, phi_agg2, r2_next) match ``regression_models``'s design
+    builders, so the horizon-1 (basic/enhanced) fitting code is reused as-is.
+    """
+    from src import regression_models  # local import: avoids a module import cycle
+
+    alpha = config.ewma_alpha_for_horizon(k)
+    horizon_days = config.TREND_HORIZON_DAYS[k]
+    long_cols = [f"phi_{j}" for j in config.TREND_HORIZONS_K if j >= k]
+    assert long_cols, f"no trend horizon >= 2^{k} days available"
+
+    out = []
+    for _, g in panel.groupby("ticker", sort=False):
+        g = g.sort_values("date").copy()
+        g["sigma2"] = variance.ewma_variance(g["r"].to_numpy(), alpha=alpha)
+        phi = g[long_cols].to_numpy()
+        g["phi_agg"] = phi.mean(axis=1)
+        g["phi_agg2"] = (phi ** 2).mean(axis=1)
+        out.append(g)
+    long_panel = pd.concat(out, ignore_index=True)
+    long_panel["r2_next"] = regression_models.longer_horizon_target(long_panel, horizon_days)
+    return long_panel.dropna(subset=["r2_next"]).reset_index(drop=True)
+
+
 def add_range_columns(panel: pd.DataFrame) -> pd.DataFrame:
     """Add the squared-range column ``range2`` (paper section 4.3: R_t^2 =
     N*((H_t-L_t)/(H_t+L_t))^2, N chosen per asset so E[R^2]=1) plus the

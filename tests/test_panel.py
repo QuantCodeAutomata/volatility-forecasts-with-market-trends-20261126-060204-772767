@@ -39,6 +39,27 @@ def test_build_panel_phi_agg_uses_correct_horizon_counts(synthetic_universe):
     np.testing.assert_allclose(full_panel["phi_agg"].to_numpy(), manual.to_numpy(), atol=1e-10)
 
 
+def test_build_long_horizon_panel_target_matches_cumulative_sum(synthetic_universe):
+    per_ticker, universe = synthetic_universe
+    full_panel = panel.build_panel(per_ticker, universe)
+    k = 3
+    long_panel = panel.build_long_horizon_panel(full_panel, k)
+    assert not long_panel.empty
+    horizon_days = config.TREND_HORIZON_DAYS[k]
+    for ticker, full_group in full_panel.groupby("ticker"):
+        full_group = full_group.sort_values("date").reset_index(drop=True)
+        long_group = long_panel[long_panel["ticker"] == ticker].sort_values("date").reset_index(drop=True)
+        date_to_pos = {d: i for i, d in enumerate(full_group["date"])}
+        r2 = full_group["r"].to_numpy() ** 2
+        # row 0 of long_group must equal the sum of the next horizon_days
+        # squared returns from the matching date in full_panel (no look-ahead
+        # beyond that window).
+        t = date_to_pos[long_group["date"].iloc[0]]
+        expected = r2[t + 1:t + 1 + horizon_days].sum()
+        got = long_group["r2_next"].iloc[0]
+        np.testing.assert_allclose(got, expected, atol=1e-8)
+
+
 def test_add_range_columns_next_day_alignment(synthetic_universe):
     per_ticker, universe = synthetic_universe
     full_panel = panel.build_panel(per_ticker, universe)

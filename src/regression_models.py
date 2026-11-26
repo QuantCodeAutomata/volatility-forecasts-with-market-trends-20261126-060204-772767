@@ -123,11 +123,13 @@ def longer_horizon_target(panel: pd.DataFrame, horizon_days: int) -> pd.Series:
         pos = panel.index.get_indexer(idx)
         series = r2[pos]
         n = len(series)
-        # sum_{s=1}^{T} r2[t+s] = cumsum(r2)[t+T] - cumsum(r2)[t], 0 beyond range
+        # sum_{s=1}^{T} r2[t+s] = cumsum(r2)[t+1+T] - cumsum(r2)[t+1] (future
+        # returns only, excluding the current day t itself, consistent with
+        # the T=1 case r2_next = r_{t+1}^2 used by the basic model).
         cum = np.concatenate(([0.0], np.cumsum(series)))
         result = np.full(n, np.nan)
-        valid = n - horizon_days
+        valid = n - horizon_days - 1
         if valid > 0:
-            result[:valid] = cum[horizon_days:horizon_days + valid] - cum[:valid]
+            result[:valid] = cum[horizon_days + 1:horizon_days + 1 + valid] - cum[1:1 + valid]
         target[pos] = result
     return pd.Series(target, index=panel.index)
