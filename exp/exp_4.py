@@ -70,7 +70,10 @@ MODEL_SPECS = [
 # derived from. Only the repetition counts / iteration caps are reduced; the
 # fitting method and QLIKE formula are unchanged.
 MEASURE_MAXITER = 20          # step (a): one-off calibration call, always run
-SV_MAXITER_RUN = 25           # whole-panel fits (step 2), all 4 models
+SV_MAXITER_RUN = 45           # whole-panel fits (step 2), all 4 models; raised
+# from 25 after Heston_trend's whole-panel fit reached scipy.optimize's own
+# ``converged=False`` at maxiter=25 (insufficient iterations, not a modeling
+# defect) while the other three models already converged at that cap.
 SV_CV_FOLDS_RUN = 2           # adjacent day-folds for out-of-sample QLIKE (step 3)
 SV_CV_MAXITER = 8             # per-fold refit iterations (step 3)
 SV_BOOTSTRAP_SAMPLES_RUN = 12       # block-bootstrap resamples (step 4)

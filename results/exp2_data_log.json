@@ -49,8 +49,8 @@
   "bootstrap_samples": 60,
   "block_bootstrap_blocks": 8,
   "block_length_days": 60,
-  "full_fit_maxiter": 8,
-  "cv_fit_maxiter": 3,
+  "full_fit_maxiter": 40,
+  "cv_fit_maxiter": 20,
   "bootstrap_fit_maxiter": 50,
-  "elapsed_seconds": 190.54974913597107
+  "elapsed_seconds": 501.71239709854126
 }

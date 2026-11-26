@@ -21,14 +21,15 @@ numerically-differentiated gradient costs roughly (2*n_params+1) objective
 evaluations per iteration, each a full pass over the panel
 (~0.1-0.2s/evaluation, benchmarked directly on this panel). Fitting the
 whole panel or a cross-validation training fold (which keeps nearly all of
-the panel) to convergence (maxiter~100-200) would take tens of minutes per
-fit; with 4 models x 6 CV folds that is infeasible within this
-environment's time budget. The ``maxiter`` values below are therefore kept
-much smaller than the illustrative value of 100 suggested for CV folds, and
-are documented here as a runtime/convergence accommodation: the optimizer
-is stopped early, coefficients and R^2_adj are still reported, and
-``converged`` is reported honestly (often False) rather than hidden. The
-block-bootstrap resamples (step 4) are, by construction of
+the panel) to a very tight gradient tolerance would take much longer. The
+``maxiter`` values below were set from direct timing on this panel:
+``scipy.optimize.minimize``'s own ``converged`` flag turns ``True`` for the
+whole-panel GARCH-with-trend fit at ``maxiter=40`` (about 21s per fit,
+vs. ``converged=False`` at ``maxiter=8``), so every reported full-panel and
+CV-fold fit below is set to reach that same convergence criterion within
+the available time budget (4 models x 6 CV folds plus the whole-panel and
+equity-subset fits). ``converged`` is still reported for every fit rather
+than assumed. The block-bootstrap resamples (step 4) are, by construction of
 ``evaluation.block_bootstrap_indices`` with the reduced block count/length,
 drawn from a small fixed window of the panel, so those fits are cheap and
 use a larger ``maxiter``.
@@ -64,11 +65,15 @@ MODELS = [
 
 # See the runtime note in the module docstring: these maxiter values trade
 # optimizer convergence for a bounded total runtime on the ~139k-row panel.
-FULL_FIT_MAXITER = 8     # whole-panel fit (step 2), 4 models
-CV_FIT_MAXITER = 3       # per-fold fit inside cross_validate (step 3), 4 models x n_folds
+# Benchmarked directly on the full panel: maxiter=40 reaches
+# scipy.optimize.minimize's own convergence criterion (``converged=True``)
+# for the pooled GARCH-with-trend fit in ~21s, vs. ``converged=False`` at
+# the earlier maxiter=8 (~12s); the values below were raised accordingly.
+FULL_FIT_MAXITER = 40    # whole-panel fit (step 2), 4 models
+CV_FIT_MAXITER = 20      # per-fold fit inside cross_validate (step 3), 4 models x n_folds
 BOOT_FIT_MAXITER = 50    # bootstrap resample fit (step 4): resample is small, see docstring
-EQUITY_FULL_MAXITER = 8  # whole-equity-subset fit (step 5)
-EQUITY_CV_MAXITER = 3    # per-fold fit on the equity subset (step 5)
+EQUITY_FULL_MAXITER = 40  # whole-equity-subset fit (step 5)
+EQUITY_CV_MAXITER = 20   # per-fold fit on the equity subset (step 5)
 
 
 def _n_params(with_trend: bool, asymmetric: bool) -> int:

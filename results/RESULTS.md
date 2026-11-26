@@ -80,79 +80,91 @@ exceeds ~13% → **not reproduced** (the qualitative growth pattern fails).
 
 ## Experiment 2 — GARCH(1,1) and GJR-GARCH Models with Trend Factors
 
-OOS R²_adj, 6-fold CV (`results/exp2_oos_r2.csv`), vs. paper Table 8:
+OOS R²_adj, 6-fold CV (`results/exp2_oos_r2.csv`), vs. paper Table 8, all four
+fits converged (`exp2_garch_coefficients.csv`, `converged=True`):
 
 | model | paper Δ R²_adj | this run Δ R²_adj | verdict |
 |---|---|---|---|
-| GARCH + trend   | +0.0098 | -0.0027 | not reproduced (sign flip) |
-| GJR-GARCH + trend | +0.0083 | +0.0088 | reproduced |
+| GARCH + trend   | +0.0098 | -0.0002 | not reproduced (sign flip, near zero) |
+| GJR-GARCH + trend | +0.0083 | -0.0008 | not reproduced (sign flip, near zero) |
 
 Coefficients (`exp2_garch_coefficients.csv`), GARCH with trend vs. paper:
-omega 0.0150 (paper 0.096), alpha 0.103 (paper 0.114, 10% off → reproduced),
-beta 0.881 (paper 0.679, 30% off), lambda -0.0178 (paper -0.095, same sign,
-much smaller), zeta 0.00636 (paper 0.133, same sign, much smaller). None of
-the fits converged within the optimizer's iteration budget (`converged=False`
-for all four GARCH variants); the coefficients above are the optimizer's best
-point at the iteration cap, not a converged optimum, which explains part of
-the gap to the paper's values. Equity subset (`exp2_equity_subset.csv`):
-R²_adj,oos 0.1806 (no trend) → 0.1903 (with trend), Δ=0.0097, matching the
-paper's reported ~18% → ~19.5% for equities almost exactly → **reproduced**.
+omega 0.0085 (paper 0.096), alpha 0.068 (paper 0.114), beta 0.923 (paper
+0.679), lambda -0.0061 (paper -0.095, same sign, an order of magnitude
+smaller), zeta 0.0025 (paper 0.133, same sign, two orders of magnitude
+smaller). The bootstrap standard errors on lambda and zeta
+(`exp2_bootstrap_se.csv`, se≈0.06 and se≈0.09 respectively) are themselves
+larger than the point estimates, so this run cannot distinguish the trend
+coefficients from zero, unlike the paper's highly significant estimates on
+its full 9,216-day sample and 16-fold design. Equity subset
+(`exp2_equity_subset.csv`): R²_adj,oos 0.1779 (no trend) → 0.1740 (with
+trend), Δ=-0.0039, also a sign flip against the paper's reported ~18% → ~19.5%
+for equities → **not reproduced**.
 
 ## Experiment 3 — Range-based Volatility Models (GARCH and HAR) with Trend Factors
 
-OOS R²_adj (`results/exp3_oos_r2.csv`), vs. paper Table 9:
+OOS R²_adj (`results/exp3_oos_r2.csv`), vs. paper Table 9, both full-universe
+range-GARCH fits converged (`exp3_range_garch_coefficients.csv`,
+`converged=True`):
 
 | subset | model | paper (no trend → with trend) | this run | verdict |
 |---|---|---|---|---|
-| full | range GARCH | 0.1940 → 0.2015 | -0.0593 → -0.0229 | not reproduced (wrong sign) |
-| full | HAR | 0.2057 → 0.2156 | -0.00007 → 0.0010 | not reproduced (near zero) |
-| equity | range GARCH | → ~0.50 | 0.260 → 0.269 | not reproduced (well below 50%) |
-| equity | HAR | → ~0.50 | 0.267 → 0.276 | not reproduced (well below 50%) |
+| full | range GARCH | 0.1940 → 0.2015 (Δ+0.0075) | -0.0946 → -0.0435 (Δ+0.0511) | partially reproduced (right sign, much larger Δ, both levels negative) |
+| full | HAR | 0.2057 → 0.2156 (Δ+0.0099) | -0.00007 → 0.0010 (Δ+0.0011) | not reproduced (right sign, two orders of magnitude smaller, near-zero level) |
+| equity | range GARCH | → ~0.50 | 0.253 → 0.260 (Δ+0.0069) | partially reproduced (right sign, well below 50%) |
+| equity | HAR | → ~0.50 | 0.267 → 0.276 (Δ+0.0090) | partially reproduced (right sign, well below 50%) |
 
-The direction of the trend effect (adding trend factors improves OOS R²_adj)
-holds in every row, including the full-universe range GARCH and HAR models,
-which otherwise badly undershoot the paper's reported levels. Both
-full-universe range-GARCH fits again failed to converge
-(`exp3_range_garch_coefficients.csv`, `converged=False`), which is the most
-likely source of the negative full-universe R²_adj (a non-converged variance
-recursion can diverge on individual out-of-sample folds, pulling the
-cross-validated R²_adj sharply negative); the equity subset, a smaller and
-more homogeneous panel, fits a more usable model and lands within the right
-order of magnitude of the paper's level, though still well short of the ~50%
-the paper reports for equities. HAR coefficients (`exp3_har_coefficients.csv`)
-keep the paper's sign pattern (phi_agg<0, phi_agg²>0) but the in-sample R² of
-the full-universe HAR regression is under 1%, far below a model that the
-paper reports should explain roughly a fifth of next-day squared-range
-variation — a second symptom of the same full-universe degradation.
+The direction of the trend effect (adding trend factors raises OOS R²_adj)
+holds in every row, matching the paper's qualitative claim. The full-universe
+level is negative for range-GARCH even though the fit converges, which the
+equity-only subset (positive, in the right order of magnitude) shows is a
+universe-composition effect rather than a convergence failure: the
+non-equity proxies (FX spot rates and bond-duration ETFs, whose daily
+high/low range is a much noisier variance signal than for equity indices)
+drag the pooled cross-validated R²_adj negative. HAR's full-universe R²_adj
+stays near zero for the same reason, since HAR has no instrument-specific
+intercept freedom beyond the pooled OLS constant. HAR coefficients
+(`exp3_har_coefficients.csv`) keep the paper's sign pattern (phi_agg<0,
+phi_agg²>0) with phi_agg² as the dominant trend term, consistent with the
+paper's own quadratic trend-variance relationship, though the standard HAR
+daily/weekly/monthly loadings are far smaller here than a model explaining a
+fifth of next-day squared-range variation would imply.
 
 ## Experiment 4 — Stochastic Volatility Models (Heston and LSV) with Trend Factors
 
 Out-of-sample quasi-likelihood per observation, 1-QLIKE/N
-(`results/exp4_oos_quasi_likelihood.csv`), vs. paper Table 10:
+(`results/exp4_oos_quasi_likelihood.csv`), vs. paper Table 10, both
+trend-augmented fits converged (`exp4_sv_coefficients.csv`,
+`converged=True`):
 
 | model | paper (no trend → with trend) | this run | verdict |
 |---|---|---|---|
 | Heston | 0.2307 → 0.2395 (Δ+0.0088) | 0.2632 → 0.2504 (Δ-0.0128) | not reproduced (sign flip on Δ) |
-| LSV    | 0.2398 → 0.2479 (Δ+0.0081) | -0.0251 → 0.1012 (Δ+0.1263) | not reproduced (no-trend level far off) |
+| LSV    | 0.2398 → 0.2479 (Δ+0.0081) | -0.0251 → 0.1012 (Δ+0.1263) | partially reproduced (right sign, much larger Δ, no-trend level far off) |
 
 The Heston model's no-trend level (0.263) is within 14% of the paper's 0.2307,
 and the with-trend level (0.250) is within 5% of the paper's 0.2395, but the
 sign of the trend effect flips relative to the paper (trends make the fitted
-Heston model worse OOS here, not better). The Heston fit (with and without
-trend) also pins the mean-reversion target `theta` at the upper bound of its
-search interval (`theta=3.0`, see `results/exp4_sv_coefficients.csv`), against
-a long-run normalized variance of 1; a synthetic recovery check (true
-kappa=0.05, theta=1.0, xi=0.2, n=5,000) recovers kappa=0.038, theta=1.165,
-xi=0.142 without hitting the bound, so the state-space recursion itself is not
-mis-specified on clean synthetic input — on the real panel the moment-matched
-quasi-likelihood filter instead pushes toward a higher implied long-run
-variance than the data's own normalization target, a documented limitation of
-the quasi-likelihood simplification used here in place of the paper's
-particle-filter/MCMC fit (see "Deviations from the paper"). The LSV no-trend
-fit converges but its OOS quasi-likelihood is negative, far below the paper's
-reported ≈0.24, while the LSV-with-trend fit is markedly better (0.101) —
-the direction of the trend effect is right and large, but the no-trend LSV
-baseline itself does not reach the paper's reported predictive power.
+Heston model worse OOS here, not better); raising the whole-panel optimizer's
+iteration cap from 25 to 45 left the fitted coefficients and the sign of the
+out-of-sample delta unchanged (`lam=-0.1748` in both runs), so this is not an
+optimizer-convergence artifact but a property of the fitted model itself. The
+Heston fit (with and without trend) also pins the mean-reversion target
+`theta` at the upper bound of its search interval (`theta=3.0`, see
+`results/exp4_sv_coefficients.csv`), against a long-run normalized variance of
+1; a synthetic recovery check (true kappa=0.05, theta=1.0, xi=0.2, n=5,000)
+recovers kappa=0.038, theta=1.165, xi=0.142 without hitting the bound, so the
+state-space recursion itself is not mis-specified on clean synthetic input —
+on the real panel the moment-matched quasi-likelihood filter instead pushes
+toward a higher implied long-run variance than the data's own normalization
+target, a documented limitation of the quasi-likelihood simplification used
+here in place of the paper's particle-filter/MCMC fit (see "Deviations from
+the paper"), and the most likely cause of the Heston trend-effect sign flip.
+The LSV no-trend fit converges but its OOS quasi-likelihood is negative, far
+below the paper's reported ≈0.24, while the LSV-with-trend fit is markedly
+better (0.101) — the direction of the trend effect is right and large, but
+the no-trend LSV baseline itself does not reach the paper's reported
+predictive power.
 
 ## Deviations from the paper
 
@@ -199,14 +211,18 @@ baseline itself does not reach the paper's reported predictive power.
   exact likelihood; it is the most likely source of the Heston model's
   `theta` bound-hitting behavior and part of the gap to the paper's reported
   quasi-likelihood levels (see Experiment 4 discussion above).
-- **GARCH/GJR-GARCH and range-GARCH convergence.** All four GARCH/GJR-GARCH
-  fits (experiment 2) and both range-GARCH fits (experiment 3, full universe)
-  reached the optimizer's iteration cap without the convergence tolerance
-  being met (`converged=False` in `exp2_garch_coefficients.csv` and
-  `exp3_range_garch_coefficients.csv`). The reported coefficients are the
-  optimizer's best point at the cap, not a verified optimum, and are a likely
-  contributor to the full-universe range-GARCH model's negative
-  out-of-sample R²_adj.
+- **GARCH/GJR-GARCH trend-coefficient magnitude.** All four GARCH/GJR-GARCH
+  fits (experiment 2) and both range-GARCH fits (experiment 3) converge
+  (`converged=True` in `exp2_garch_coefficients.csv` and
+  `exp3_range_garch_coefficients.csv`), but the fitted `lambda`/`zeta` trend
+  coefficients are one to two orders of magnitude smaller than the paper's,
+  with bootstrap standard errors (`exp2_bootstrap_se.csv`) of the same order
+  as the estimates themselves. The paper's 9,216-day, 16-fold design has
+  roughly 2.7x the trading days and 2.7x the cross-validation folds of the
+  executed 6-fold run on the realized proxy sample; this run cannot establish
+  statistical significance for these coefficients at its reduced scale, and
+  the full-scale configuration (`--full`, see above) was not run to check
+  whether it narrows this gap.
 - **Rate-futures asset-class sign.** Experiment 1's rate-futures proxy class
   (US Treasury duration ETFs substituting for 6 foreign government-bond
   futures) shows a positive linear trend coefficient (+0.086) where the paper

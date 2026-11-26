@@ -65,11 +65,15 @@ HAR_TREND_COEF_ORDER = ["const", "daily", "weekly", "monthly", "phi_agg", "phi_a
 
 # See the runtime note in the module docstring: these maxiter values trade
 # optimizer convergence for a bounded total runtime, exactly as in exp_2.
-GARCH_FULL_MAXITER = 8     # whole-panel fit (step 2), 2 variants (with/without trend)
-GARCH_CV_MAXITER = 3       # per-fold fit inside cross_validate (step 4), 2 variants x n_folds
+# Same convergence benchmark as exp_2 (whole-panel GARCH-with-trend fit
+# reaches scipy.optimize.minimize's own ``converged=True`` at maxiter=40 on
+# this panel, vs. ``converged=False`` at maxiter=8); raised accordingly so
+# every reported fit is a genuine local optimum within the time budget.
+GARCH_FULL_MAXITER = 40    # whole-panel fit (step 2), 2 variants (with/without trend)
+GARCH_CV_MAXITER = 20      # per-fold fit inside cross_validate (step 4), 2 variants x n_folds
 GARCH_BOOT_MAXITER = 50    # bootstrap resample fit (step 7): resample is small, see exp_2's docstring
-GARCH_EQUITY_FULL_MAXITER = 8   # whole-equity-subset fit (step 6)
-GARCH_EQUITY_CV_MAXITER = 3     # per-fold fit on the equity subset (step 6)
+GARCH_EQUITY_FULL_MAXITER = 40  # whole-equity-subset fit (step 6)
+GARCH_EQUITY_CV_MAXITER = 20    # per-fold fit on the equity subset (step 6)
 
 
 def _har_n_params(with_trend: bool) -> int:
