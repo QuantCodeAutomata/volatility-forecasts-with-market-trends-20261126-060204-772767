@@ -1,0 +1,3 @@
+asset_class,with_trend,method,r2_adj,n_obs,converged,delta_r2_adj
+equity,False,oos,0.1805841952772439,46817,False,
+equity,True,oos,0.19029363339517047,46817,False,0.009709438117926572

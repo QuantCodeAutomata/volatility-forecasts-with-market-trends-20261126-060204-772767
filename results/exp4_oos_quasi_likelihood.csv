@@ -1,0 +1,5 @@
+name,kind,with_trend,oos_1_minus_qlike_over_n,n_obs,n_tickers_cv,delta
+Heston,heston,False,0.25666097345949435,47950,8,
+Heston_trend,heston,True,0.25049347076675466,47950,8,-0.00616750269273969
+LSV,lsv,False,-0.19690571679655045,47950,8,
+LSV_trend,lsv,True,-0.13584360220382896,47950,8,0.061062114592721484
