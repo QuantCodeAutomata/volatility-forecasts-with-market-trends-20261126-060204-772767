@@ -102,7 +102,11 @@ def _tidy(wide: pd.DataFrame, details: list) -> pd.DataFrame:
         ticker, alias = detail["ticker"], detail.get("alias") or ""
         columns = {}
         for field in FIELDS:
-            for name in (f"{ticker}_{field}", f"{alias}_{field}", field):
+            # Inline answers name wide columns "{TICKER}_{field}"; CSV exports from
+            # /save-dataframe name them "{ticker.lower()}_{field}" (alias in lower
+            # case, punctuation such as ":" kept, not replaced by the JSON alias).
+            for name in (f"{ticker}_{field}", f"{ticker.lower()}_{field}",
+                         f"{alias}_{field}", field):
                 if name in wide.columns:
                     columns[name] = field
                     break
