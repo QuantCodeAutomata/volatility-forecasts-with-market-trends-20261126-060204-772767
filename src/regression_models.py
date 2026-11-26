@@ -31,6 +31,22 @@ def _design_enhanced(panel: pd.DataFrame) -> pd.DataFrame:
     })
 
 
+def basic_design(panel: pd.DataFrame, variant: str = "full") -> pd.DataFrame:
+    """Regressor columns of the basic model (eq. 6) for ``variant``: "full"
+    (sigma2, phi_agg, phi_agg2), "trend_only" (phi_agg, phi_agg2 only, model
+    (7) without the EWMA term) or "variance_only" (sigma2 only). Shared by
+    ``fit_ols``/``fit_qmle`` and by out-of-sample prediction so train and
+    test designs are always built the same way."""
+    design = _design_basic(panel)
+    if variant == "trend_only":
+        return design[["phi_agg", "phi_agg2"]]
+    if variant == "variance_only":
+        return design[["sigma2"]]
+    if variant != "full":
+        raise ValueError(f"unknown variant {variant}")
+    return design
+
+
 def fit_ols(panel: pd.DataFrame, variant: str = "full") -> dict:
     """OLS fit of the next-day variance model (paper eq. 6):
     r_{t+1}^2 = a + d*sigma_t^2 + e*phi_agg + f*phi_agg^2 + eps.
@@ -38,14 +54,8 @@ def fit_ols(panel: pd.DataFrame, variant: str = "full") -> dict:
     variant: "full" (all three factors), "trend_only" (drop sigma2),
     "variance_only" (drop phi_agg/phi_agg2).
     """
-    design = _design_basic(panel)
+    design = basic_design(panel, variant)
     y = panel["r2_next"].to_numpy()
-    if variant == "trend_only":
-        design = design[["phi_agg", "phi_agg2"]]
-    elif variant == "variance_only":
-        design = design[["sigma2"]]
-    elif variant != "full":
-        raise ValueError(f"unknown variant {variant}")
     x = sm.add_constant(design)
     model = sm.OLS(y, x, missing="drop").fit()
     return {"model": model, "params": model.params, "fitted": model.fittedvalues,
@@ -80,15 +90,9 @@ def qlike(sigma2_hat: np.ndarray, r2: np.ndarray) -> float:
 def fit_qmle(panel: pd.DataFrame, variant: str = "full", max_iter: int = 50,
              tol: float = 1e-6) -> dict:
     """Gaussian QMLE of model (6) by iteratively re-weighted least squares
-    (paper section 3.3): weights w_t = 1/sigma_hat_{t+1}^2, re-estimated
+    (paper section 3.3):     weights w_t = 1/sigma_hat_{t+1}^2, re-estimated
     after each step until the coefficients converge."""
-    design = _design_basic(panel)
-    if variant == "trend_only":
-        design = design[["phi_agg", "phi_agg2"]]
-    elif variant == "variance_only":
-        design = design[["sigma2"]]
-    elif variant != "full":
-        raise ValueError(f"unknown variant {variant}")
+    design = basic_design(panel, variant)
     y = panel["r2_next"].to_numpy()
     x = sm.add_constant(design).to_numpy()
 
