@@ -32,7 +32,7 @@ Runtime note (same reasoning as exp_2's module docstring): the pooled
 range-GARCH recursion (src/garch_models.garch_recursion, reused by
 src/range_models.fit_range_garch) is a per-row Python loop over a
 multi-decade, multi-market panel, so a quasi-Newton fit to full convergence
-is too slow to run inside the time budget for four models x several CV
+is too slow to run inside the available compute time for four models x several CV
 folds x bootstrap resamples. The ``maxiter`` values below are kept small,
 exactly as in exp_2, and ``converged`` is reported honestly (often False)
 rather than hidden. The HAR model is a one-shot OLS fit (no iterative
@@ -68,7 +68,7 @@ HAR_TREND_COEF_ORDER = ["const", "daily", "weekly", "monthly", "phi_agg", "phi_a
 # Same convergence benchmark as exp_2 (whole-panel GARCH-with-trend fit
 # reaches scipy.optimize.minimize's own ``converged=True`` at maxiter=40 on
 # this panel, vs. ``converged=False`` at maxiter=8); raised accordingly so
-# every reported fit is a genuine local optimum within the time budget.
+# every reported fit is a genuine local optimum within the available compute time.
 GARCH_FULL_MAXITER = 40    # whole-panel fit (step 2), 2 variants (with/without trend)
 GARCH_CV_MAXITER = 20      # per-fold fit inside cross_validate (step 4), 2 variants x n_folds
 GARCH_BOOT_MAXITER = 50    # bootstrap resample fit (step 7): resample is small, see exp_2's docstring

@@ -27,7 +27,7 @@ the panel) to a very tight gradient tolerance would take much longer. The
 whole-panel GARCH-with-trend fit at ``maxiter=40`` (about 21s per fit,
 vs. ``converged=False`` at ``maxiter=8``), so every reported full-panel and
 CV-fold fit below is set to reach that same convergence criterion within
-the available time budget (4 models x 6 CV folds plus the whole-panel and
+the available compute time (4 models x 6 CV folds plus the whole-panel and
 equity-subset fits). ``converged`` is still reported for every fit rather
 than assumed. The block-bootstrap resamples (step 4) are, by construction of
 ``evaluation.block_bootstrap_indices`` with the reduced block count/length,

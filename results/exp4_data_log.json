@@ -53,7 +53,7 @@
     "elapsed_seconds": 64.81003856658936
   },
   "reductions": {
-    "reason": "the per-row Python Kalman-filter recursion in src/sv_models.py costs ~64.8s for one maxiter=20 whole-panel fit (measured above); the paper's maxiter=100 / 16 CV folds / 300 bootstrap samples / 24-ticker CV+bootstrap would take far longer than this experiment's time budget (target ~260s total, this run).",
+    "reason": "the per-row Python Kalman-filter recursion in src/sv_models.py costs ~64.8s for one maxiter=20 whole-panel fit (measured above); the paper's maxiter=100 / 16 CV folds / 300 bootstrap samples / 24-ticker CV+bootstrap would take far longer than the compute time available for this replication (target ~260s total, this run).",
     "whole_panel_fit_maxiter": 45,
     "cv_folds": 2,
     "cv_fit_maxiter": 8,

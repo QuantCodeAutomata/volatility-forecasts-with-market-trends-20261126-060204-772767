@@ -24,7 +24,7 @@ fits (Heston / LSV, with/without trend) plus a cross-validation (n_folds
 refits x 4 models) plus a block-bootstrap (n_samples refits x 2 with-trend
 models) at the paper's full settings (``maxiter=100``, 16 CV folds, 300
 bootstrap samples, all 24 tickers everywhere) would take many hours, far
-beyond this experiment's time budget. The reduced-run constants below
+beyond the compute time available for this replication. The reduced-run constants below
 (``SV_MAXITER_RUN``, ``SV_CV_FOLDS_RUN``, ``SV_CV_MAXITER``,
 ``SV_BOOTSTRAP_*``, ``SV_CV_TICKER_SUBSET``) trade optimizer convergence
 and resampling granularity for a bounded total runtime (~200-250s), chosen
@@ -302,7 +302,7 @@ def main(full: bool = False) -> None:
                 f"costs ~{measure_elapsed:.1f}s for one maxiter={MEASURE_MAXITER} "
                 "whole-panel fit (measured above); the paper's maxiter=100 / "
                 "16 CV folds / 300 bootstrap samples / 24-ticker CV+bootstrap "
-                "would take far longer than this experiment's time budget "
+                "would take far longer than the compute time available for this replication "
                 "(target ~260s total, this run)."
             ),
             "whole_panel_fit_maxiter": maxiter_full,
