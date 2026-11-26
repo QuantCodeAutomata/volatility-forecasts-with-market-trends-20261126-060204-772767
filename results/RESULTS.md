@@ -132,7 +132,16 @@ equity-only subset (positive, in the right order of magnitude) shows is a
 universe-composition effect rather than a convergence failure: the
 non-equity proxies (FX spot rates and bond-duration ETFs, whose daily
 high/low range is a much noisier variance signal than for equity indices)
-drag the pooled cross-validated R²_adj negative. HAR's full-universe R²_adj
+drag the pooled cross-validated R²_adj negative. A per-asset-class breakdown
+of the no-trend range-GARCH fit (same fitted/predicted path as the pooled
+run, not separately saved as a file) confirms this: equity R²_adj=+0.253 (6
+tickers), FX=+0.032 (6 tickers), commodity=+0.045 (6 tickers), and
+rate=-0.428 (6 tickers) — the US Treasury duration-ETF proxies that stand in
+for the paper's foreign government-bond futures (see "Deviations from the
+paper") are the dominant driver of the negative pooled number, while FX and
+commodity are weakly positive and only the rate class is strongly negative;
+no single class reproduces the pooled -0.095 by itself, so this is the
+proxy-universe mix rather than a pooling or sign bug. HAR's full-universe R²_adj
 stays near zero for the same reason, since HAR has no instrument-specific
 intercept freedom beyond the pooled OLS constant. HAR coefficients
 (`exp3_har_coefficients.csv`) keep the paper's sign pattern (phi_agg<0,
