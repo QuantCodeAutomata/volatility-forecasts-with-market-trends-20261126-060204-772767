@@ -70,9 +70,9 @@ MODEL_SPECS = [
 # derived from. Only the repetition counts / iteration caps are reduced; the
 # fitting method and QLIKE formula are unchanged.
 MEASURE_MAXITER = 20          # step (a): one-off calibration call, always run
-SV_MAXITER_RUN = 4            # whole-panel fits (step 2), all 4 models
+SV_MAXITER_RUN = 25           # whole-panel fits (step 2), all 4 models
 SV_CV_FOLDS_RUN = 2           # adjacent day-folds for out-of-sample QLIKE (step 3)
-SV_CV_MAXITER = 2             # per-fold refit iterations (step 3)
+SV_CV_MAXITER = 8             # per-fold refit iterations (step 3)
 SV_BOOTSTRAP_SAMPLES_RUN = 12       # block-bootstrap resamples (step 4)
 SV_BOOTSTRAP_MAXITER = 15          # per-resample refit iterations (step 4)
 SV_BOOTSTRAP_BLOCKS_RUN = 4        # contiguous day-blocks per resample

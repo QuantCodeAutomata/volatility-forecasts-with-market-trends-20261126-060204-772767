@@ -50,13 +50,13 @@
     "call": "fit_heston(with_trend=False, maxiter=20)",
     "n_tickers": 24,
     "n_obs": 138996,
-    "elapsed_seconds": 60.85296702384949
+    "elapsed_seconds": 62.24988675117493
   },
   "reductions": {
-    "reason": "the per-row Python Kalman-filter recursion in src/sv_models.py costs ~60.9s for one maxiter=20 whole-panel fit (measured above); the paper's maxiter=100 / 16 CV folds / 300 bootstrap samples / 24-ticker CV+bootstrap would take far longer than this experiment's time budget (target ~260s total, this run).",
-    "whole_panel_fit_maxiter": 4,
+    "reason": "the per-row Python Kalman-filter recursion in src/sv_models.py costs ~62.2s for one maxiter=20 whole-panel fit (measured above); the paper's maxiter=100 / 16 CV folds / 300 bootstrap samples / 24-ticker CV+bootstrap would take far longer than this experiment's time budget (target ~260s total, this run).",
+    "whole_panel_fit_maxiter": 25,
     "cv_folds": 2,
-    "cv_fit_maxiter": 2,
+    "cv_fit_maxiter": 8,
     "bootstrap_samples": 12,
     "bootstrap_fit_maxiter": 15,
     "bootstrap_blocks": 4,
@@ -74,11 +74,11 @@
     "n_tickers_cv_bootstrap": 8
   },
   "stage_elapsed_seconds": {
-    "load_and_build_panel": 0.8713068962097168,
-    "timing_measurement": 60.85296702384949,
-    "step2_whole_panel_coefficients_and_leverage": 146.21197271347046,
-    "step3_oos_quasi_likelihood": 14.429472923278809,
-    "step4_block_bootstrap": 1.190934658050537
+    "load_and_build_panel": 0.8685824871063232,
+    "timing_measurement": 62.24988675117493,
+    "step2_whole_panel_coefficients_and_leverage": 319.8358402252197,
+    "step3_oos_quasi_likelihood": 31.149189472198486,
+    "step4_block_bootstrap": 1.2254009246826172
   },
-  "elapsed_seconds": 223.5987401008606
+  "elapsed_seconds": 415.3708369731903
 }

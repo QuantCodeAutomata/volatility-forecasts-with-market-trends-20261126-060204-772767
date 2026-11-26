@@ -44,6 +44,7 @@ def _recursion(y, phi_agg, phi_agg2, const, ar, lam, zeta, xi, obs_offset, obs_v
     x_filt = state0
     p_filt = p0
     x_pred_arr = np.empty(n)
+    p_pred_arr = np.empty(n)
     neg_loglik = 0.0
     for t in range(n):
         if t == 0:
@@ -55,6 +56,7 @@ def _recursion(y, phi_agg, phi_agg2, const, ar, lam, zeta, xi, obs_offset, obs_v
             q_var = (xi ** 2) * max(x_filt, 1e-6) if obs_var_fn is HESTON_OBS_VAR else xi ** 2
             p_pred = ar ** 2 * p_filt + q_var
         x_pred_arr[t] = x_pred
+        p_pred_arr[t] = p_pred
         innovation = y[t] - obs_offset - x_pred
         r_var = obs_var_fn(x_pred)
         total_var = max(p_pred + r_var, 1e-8)
@@ -62,7 +64,7 @@ def _recursion(y, phi_agg, phi_agg2, const, ar, lam, zeta, xi, obs_offset, obs_v
         gain = p_pred / total_var
         x_filt = x_pred + gain * innovation
         p_filt = max((1 - gain) * p_pred, 1e-8)
-    return neg_loglik, x_pred_arr
+    return neg_loglik, x_pred_arr, p_pred_arr
 
 
 def HESTON_OBS_VAR(x_pred: float) -> float:
@@ -106,9 +108,9 @@ def fit_heston(panel_by_ticker: dict, with_trend: bool, x0: dict = None,
             phi_agg2 = g["phi_agg2"].to_numpy()
             const = p["kappa"] * p["theta"]
             ar = 1.0 - p["kappa"]
-            nll, _ = _recursion(y, phi_agg, phi_agg2, const, ar, lam, zeta, p["xi"],
-                                 obs_offset=0.0, obs_var_fn=HESTON_OBS_VAR,
-                                 state0=1.0, p0=1.0)
+            nll, _, _ = _recursion(y, phi_agg, phi_agg2, const, ar, lam, zeta, p["xi"],
+                                    obs_offset=0.0, obs_var_fn=HESTON_OBS_VAR,
+                                    state0=1.0, p0=1.0)
             total += nll
         return total
 
@@ -143,9 +145,9 @@ def fit_lsv(panel_by_ticker: dict, with_trend: bool, x0: dict = None,
             phi_agg = g["phi_agg"].to_numpy()
             phi_agg2 = g["phi_agg2"].to_numpy()
             const = p["mu"] * (1.0 - p["beta"])
-            nll, _ = _recursion(y, phi_agg, phi_agg2, const, p["beta"], lam, zeta, p["xi"],
-                                 obs_offset=config.LOG_CHI2_1_MEAN, obs_var_fn=lsv_obs_var,
-                                 state0=p["mu"], p0=1.0)
+            nll, _, _ = _recursion(y, phi_agg, phi_agg2, const, p["beta"], lam, zeta, p["xi"],
+                                    obs_offset=config.LOG_CHI2_1_MEAN, obs_var_fn=lsv_obs_var,
+                                    state0=p["mu"], p0=1.0)
             total += nll
         return total
 
@@ -186,14 +188,19 @@ def predict_sv(fitted: dict, panel_by_ticker: dict) -> dict:
         if fitted["kind"] == "heston":
             y = g["r"].to_numpy() ** 2
             const, ar = p["kappa"] * p["theta"], 1.0 - p["kappa"]
-            _, x_pred = _recursion(y, phi_agg, phi_agg2, const, ar, lam, zeta, p["xi"],
-                                    0.0, HESTON_OBS_VAR, 1.0, 1.0)
+            _, x_pred, _ = _recursion(y, phi_agg, phi_agg2, const, ar, lam, zeta, p["xi"],
+                                       0.0, HESTON_OBS_VAR, 1.0, 1.0)
             out[ticker] = np.clip(x_pred, 1e-6, None)
         else:
             r2 = np.clip(g["r"].to_numpy() ** 2, 1e-10, None)
             y = np.log(r2)
             const = p["mu"] * (1.0 - p["beta"])
-            _, x_pred = _recursion(y, phi_agg, phi_agg2, const, p["beta"], lam, zeta, p["xi"],
-                                    config.LOG_CHI2_1_MEAN, lsv_obs_var, p["mu"], 1.0)
-            out[ticker] = np.exp(x_pred)
+            _, x_pred, p_pred = _recursion(y, phi_agg, phi_agg2, const, p["beta"], lam, zeta,
+                                            p["xi"], config.LOG_CHI2_1_MEAN, lsv_obs_var,
+                                            p["mu"], 1.0)
+            # Log-normal mean correction E[exp(h)] = exp(E[h] + Var[h]/2) for the
+            # predictive state h_t ~ N(x_pred, p_pred) (Harvey, Ruiz & Shephard 1994
+            # quasi-likelihood filter); omitting it understates sigma_hat^2 and was
+            # found to spuriously reverse the sign of the out-of-sample QLIKE score.
+            out[ticker] = np.exp(x_pred + 0.5 * p_pred)
     return out
